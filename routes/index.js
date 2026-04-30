@@ -46,15 +46,25 @@ router.post('/convert', (req, res) => {
 
   if (type === 'audio') {
     // === 音樂模式 ===
-    console.log(`[${jobId}] 音訊下載: 格式 ${quality}, 音質 ${bitrate}k`);
     
-    args.push('-x'); // 提取音訊
-    args.push('--audio-format', quality); // mp3, vorbis(ogg), m4a
-    
-    // 如果有指定 bitrate，使用 ffmpeg 參數強制轉換
-    const audioBitrate = bitrate ? `${bitrate}k` : '192k';
-    args.push('--audio-quality', '0'); 
-    args.push('--postprocessor-args', `AudioConvertor:-b:a ${audioBitrate}`);
+    if (quality === 'webm') {
+      // ⭐ 【WebM 原音模式】
+      console.log(`[${jobId}] 音訊下載: WebM YT原音模式 (無損提取)`);
+      // 不提取、不重新編碼，直接下載最高畫質的 webm 音軌
+      args.push('-f', 'bestaudio[ext=webm]');
+      
+    } else {
+      // ⭐ 【一般音訊轉檔模式】(mp3, m4a, vorbis)
+      console.log(`[${jobId}] 音訊下載: 格式 ${quality}, 音質 ${bitrate}k`);
+      
+      args.push('-x'); // 提取音訊
+      args.push('--audio-format', quality); // mp3, vorbis(ogg), m4a
+      
+      // 如果有指定 bitrate，使用 ffmpeg 參數強制轉換
+      const audioBitrate = bitrate ? `${bitrate}k` : '192k';
+      args.push('--audio-quality', '0'); 
+      args.push('--postprocessor-args', `AudioConvertor:-b:a ${audioBitrate}`);
+    }
 
   } else {
     // === 影片模式 ===
@@ -67,7 +77,6 @@ router.post('/convert', (req, res) => {
 
   // --- 3. 執行下載 ---
   const ytDlp = spawn('yt-dlp', args);
-
 
   // 收集錯誤日誌以便除錯
   let errorLog = '';
