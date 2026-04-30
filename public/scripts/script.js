@@ -105,8 +105,13 @@ async function startDownload() {
         
         // 確保有副檔名
         if (!filename.includes('.')) {
-            if (type === 'audio') filename += `.${payload.quality}`; // mp3 或 m4a
-            else filename += '.mp4';
+            if (type === 'audio') {
+                // 如果是 vorbis 就換成 ogg，否則直接用原本的值 (mp3, m4a, webm)
+                let ext = payload.quality === 'vorbis' ? 'ogg' : payload.quality;
+                filename += `.${ext}`;
+            } else {
+                filename += '.mp4';
+            }
         }
 
         a.download = filename;
